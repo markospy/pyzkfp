@@ -3,15 +3,29 @@
 
 [![PyPI version](https://badge.fury.io/py/pyzkfp.svg)](https://badge.fury.io/py/pyzkfp)
 
+## Detalles de eejcucion: Marcos
+Ejecuta estos comandos en este orden
+```cmd
+pip install -r requeriments.txt
+
+cd api
+
+fastapi dev
+```
+
+Acceder a:
+
+```http://127.0.0.1:8000/docs#/```
+
 ## Overview
 This is a python wrapper library of the ZKTeco SDK.
 
 ## Compatibility
 This library can connect to `SLK20R` and ZK series, including `ZK9500`, `ZK6500`, `ZK8500R` devices.
- 
+
 ## Installation
 On linux and MacOS: A .NET (or Mono) runtime is required. Windows is equipped with one by default
-- You have to first install the ZKFinger SDK from the offical website [here](https://www.zkteco.com/en/Biometrics_Module_SDK) 
+- You have to first install the ZKFinger SDK from the offical website [here](https://www.zkteco.com/en/Biometrics_Module_SDK)
 - Then install this library:
     ```bash
     pip install pyzkfp
@@ -28,8 +42,8 @@ On linux and MacOS: A .NET (or Mono) runtime is required. Windows is equipped wi
 - Light & Beep control functions.
 
 ## Note
-This repo doesn't follow the naming conventions of Python. This repo doesn't implmenet or add any extra functionalties. It's just a binding to the C# executable. 
-This library is fully compatible with zkteco's documentation (found inside the SDK zip file), you can read them to learn more. 
+This repo doesn't follow the naming conventions of Python. This repo doesn't implmenet or add any extra functionalties. It's just a binding to the C# executable.
+This library is fully compatible with zkteco's documentation (found inside the SDK zip file), you can read them to learn more.
 
 ## Usage
 Here's a simple example of how to use this library:
@@ -64,7 +78,7 @@ fingerprint_id, score = zkfp2.DBIdentify(tmp)
 ```
 
 ### Perform a 1:1 comparison
-Usually used to make sure the same finger is scanned throughout the fingerprint registration process. 
+Usually used to make sure the same finger is scanned throughout the fingerprint registration process.
 ```python
 res = zkfp2.DBMatch(template1, template2) # returns 1 if match, 0 if not
 ```
@@ -99,7 +113,7 @@ members = ... # load members' regTemp and their corresponding fingerprint_id fro
 for member in members:
     fid, temp = member
     zkfp2.DBAdd(fid, temp)
-    ...  
+    ...
 ```
 
 ### Display a fingerprint
