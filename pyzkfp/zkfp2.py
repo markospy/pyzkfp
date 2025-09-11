@@ -1,6 +1,7 @@
+import os
+import sys
 from threading import Thread
 from time import sleep
-import os, sys
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -9,22 +10,21 @@ sys.path.append(os.path.join(dir_path, "dll"))
 import clr
 
 from pyzkfp._construct.errors_handler import *
-from pyzkfp._construct.zkfp import * # this file adds code snippets hints. 
+from pyzkfp._construct.zkfp import *  # this file adds code snippets hints.
 
 try:
     from PIL import Image
 except ImportError:
     pass
 
-from io import BytesIO
 from base64 import b64encode
+from io import BytesIO
 
 clr.AddReference("libzkfpcsharp")
 clr.AddReference("System")
 
-from System import Array, Byte # ignore the warning
-
-from libzkfpcsharp import * # here too
+from libzkfpcsharp import *  # here too
+from System import Array, Byte  # ignore the warning
 
 
 class ZKFP2:
@@ -149,7 +149,7 @@ class ZKFP2:
         """
         if self.devHandle is None:
             raise DeviceNotInitializedError("Device not initialized.")
-        
+
         ret = self._zkfp.SetParameters(code, paramValue, len(paramValue))
         self._handle_error(ret)
         return paramValue
@@ -191,14 +191,14 @@ class ZKFP2:
             raise DeviceNotInitializedError("Device not initialized.")
 
         imgBuffer = Array[Byte](self.width * self.height)
-        template = Array[Byte](1024*2)  
+        template = Array[Byte](1024*2)
         size = template.Length
 
         ret, size = self.zkfp2.AcquireFingerprint(self.devHandle, imgBuffer, template, size)
         if ret == 0: # only return when ther is a fingerprint captured
             return template, bytes(imgBuffer)
 
-        if ret != -8: 
+        if ret != -8:
             self._handle_error(ret) # something went wrong => raise error
 
 
@@ -208,7 +208,7 @@ class ZKFP2:
 
         Args:
             imgBuffer (bytes): Returned image.
-        
+
         Returns:
             bytes: Image data.
         """
@@ -223,7 +223,7 @@ class ZKFP2:
             return bytes(imgBuffer)
             # i'm the biggest bird
 
-        if ret != -8: 
+        if ret != -8:
             self._handle_error(ret) # something went wrong => raise error
 
 
@@ -257,7 +257,7 @@ class ZKFP2:
             temp1 (bytes): Pre-registered fingerprint template 1.
             temp2 (bytes): Pre-registered fingerprint template 2.
             temp3 (bytes): Pre-registered fingerprint template 3.
-        
+
         Returns:
             regTemp (bytes): Returned registered template.
             regTempLen (int): Template array length.
@@ -314,7 +314,7 @@ class ZKFP2:
 
         Args:
             temp (bytes): Template used for comparison.
-        
+
         Returns:
             fid (int): Fingerprint ID if succeeded.
             score (int): Comparison score if succeeded.
@@ -343,9 +343,9 @@ class ZKFP2:
             int: Comparison score if succeeded.
         """
         score_result = self.zkfp2.DBMatch(self.dbHandle, temp1, temp2)
-        
+
         if score_result < 0: self._handle_error(score_result)
-        
+
         return score_result
 
 
@@ -450,15 +450,15 @@ class ZKFP2:
 
             self.SetParameters(colors_translation[color])
             sleep(duration)
-            self.SetParameters(colors_translation[color], self.Int2ByteArray(0)) 
+            self.SetParameters(colors_translation[color], self.Int2ByteArray(0))
 
             # !NOTE: for some reason, the light doesn't turn off when set to 0.
-            # I haven't tested it on other devices besides the SLK20R. 
+            # I haven't tested it on other devices besides the SLK20R.
             # If you think you have a solution/addition to this part of the code, please open a PR.
 
         Thread(target=light_thread).start()
 
-    
+
     def show_image(self, img: bytes):
         """
         Show an image.

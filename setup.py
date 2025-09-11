@@ -1,10 +1,11 @@
-from setuptools import find_packages, setup
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 DESCRIPTION = "A Python wrapper library for ZKFinger fingerprint scanner software."
 
 base_path = Path(__file__).parent
-long_description = (base_path / "Readme.md").read_text()
+long_description = (base_path / "README.md").read_text()
 
 
 setup(
