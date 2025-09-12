@@ -4,7 +4,9 @@ import sys
 from threading import Thread
 from time import sleep
 
+import clr  # for converting bytes to base64
 from fastapi import FastAPI, HTTPException
+from System import Array
 
 from pyzkfp import ZKFP2
 
@@ -26,7 +28,6 @@ class FingerprintScanner:
         self.initialize_zkfp2()
 
         self.capture = None
-        self.register = False
         self.fid = 1
 
         self.keep_alive = True
@@ -70,49 +71,84 @@ class FingerprintScanner:
             tmp, img = self.capture
             fid, score = self.zkfp2.DBIdentify(tmp)
 
+            try:
+                print("==================================")
+                print("Vamos a tratar de mostrar la imagen")
+                self.zkfp2.show_image(img)
+                print("==================================")
+            except Exception:
+                print("Advertencia: No se pudo mostrar la imagen")
+
             if fid:
                 self.logger.info(f"successfully identified the user: {fid}, Score: {score}")
                 self.zkfp2.Light("green")
                 self.capture = None
                 return
 
-            if not self.register:
-                self.register = True
 
-            if self.register:  # registeration logic
-                if len(self.templates) < 3:
-                    if (
-                        not self.templates or self.zkfp2.DBMatch(self.templates[-1], tmp) > 0
-                    ):  # check if the finger is the same
-                        self.zkfp2.Light("green")
-                        self.templates.append(tmp)
+            if len(self.templates) < 3:
+                if (
+                    not self.templates or self.zkfp2.DBMatch(self.templates[-1], tmp) > 0
+                ):  # check if the finger is the same
+                    self.zkfp2.Light("green")
+                    self.templates.append(tmp)
 
-                        message = f"Finger {len(self.templates)} registered successfully! " + (
-                            f"{3-len(self.templates)} presses left." if 3 - len(self.templates) > 0 else ""
-                        )
-                        self.logger.info(message)
+                    message = f"Finger {len(self.templates)} registered successfully! " + (
+                        f"{3-len(self.templates)} presses left." if 3 - len(self.templates) > 0 else ""
+                    )
+                    self.logger.info(message)
 
-                        # blob_image = self.zkfp2.Blob2Base64String(img) # convert the image to base64 string
+                    try:
+                        print("==================================")
+                        print("Vamos a tratar de convertir la imagen a base64")
+                        blob_image = self.zkfp2.Blob2Base64String(img) # convert the image to base64 string
+                    except Exception:
+                        print("Advertencia: No se pudo convertir la imagen a base64")
 
-                        if len(self.templates) == 3:
-                            regTemp, regTempLen = self.zkfp2.DBMerge(*self.templates)
-                            #self.zkfp2.DBAdd(self.fid, regTemp)
+                    if len(self.templates) == 3:
+                        regTemp, regTempLen = self.zkfp2.DBMerge(*self.templates)
+                        #self.zkfp2.DBAdd(self.fid, regTemp)
 
-                            self.templates.clear()
-                            self.register = False
-                            self.fid += 1
-                            # Convert bytes to base64 for JSON serialization
-                            template_base64 = base64.b64encode(regTemp).decode('utf-8') if isinstance(regTemp, bytes) else regTemp
-                            image_base64 = base64.b64encode(img).decode('utf-8') if isinstance(img, bytes) else img
-                            print(regTemp)
-                            self.api_response = {
-                                "array_length": regTempLen,
-                                "template_raw": template_base64,
-                                "image_raw": image_base64
-                            }
-                    else:
-                        self.zkfp2.Light("red", 1)
-                        self.logger.warning("Different finger. Please enter the original finger!")
+                        # Convert bytes to base64 for JSON serialization
+                        #template_base64 = bytes(regTemp)
+                        #image_base64 = base64.b64encode(img).decode('utf-8') if isinstance(img, bytes) else img
+                        print("Iniciando logs de pruebas")
+                        print("Probaremos a convertir regTemp a base64 usando varias tecnicas")
+                        try:
+                            print("==================================")
+                            print(bytes(regTemp).decode('utf-8'))
+                        except Exception:
+                            print("Advertencia: No se pudo convertir regTemp a string mediante bytes(regTemp).decode('utf-8')")
+
+                        try:
+                            print("==================================")
+                            print(clr.convert_to_base64(regTemp))
+                        except Exception:
+                            print("Advertencia: No se pudo convertir regTemp a base64 mediante clr.convert_to_base64(regTemp)")
+
+                        try:
+                            print("==================================")
+                            print(Array.ConvertAll[byte, byte](regTemp, lambda x: x))
+                        except Exception:
+                            print("Advertencia: No se pudo convertir regTemp con Array.ConvertAll[byte, byte](regTemp, lambda x: x)")
+
+                        try:
+                            print("==================================")
+                            print(self.zkfp2.Blob2Base64String(regTemp))
+                        except Exception:
+                            print("Advertencia: No se pudo convertir regTemp con self.zkfp2.Blob2Base64String(regTemp)")
+                        print("Finalizando logs de pruebas")
+
+                        self.api_response = {
+                            "array_length": regTempLen,
+                            "template_raw": "PROBANDO",
+                            "image_raw": blob_image
+                        }
+                        self.templates.clear()
+                        self.fid += 1
+                else:
+                    self.zkfp2.Light("red", 1)
+                    self.logger.warning("Different finger. Please enter the original finger!")
 
         except KeyboardInterrupt:
             self.logger.info("Shutting down...")
